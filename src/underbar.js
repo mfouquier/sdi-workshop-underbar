@@ -7,6 +7,7 @@
   // seem very useful, but remember it--if a function needs to provide an
   // iterator when the user does not pass one in, this will be handy.
   _.identity = function(val) {
+    return val
   };
 
   /**
@@ -37,22 +38,38 @@
   // Like first, but for the last elements. If n is undefined, return just the
   // last element.
   _.last = function(array, n) {
+    if (n === 0){
+      return []
+    }
+    return n === undefined ? array[array.length - 1] : array.slice(-n);
   };
 
-  // Call iterator(value, key, collection) for each element of collection.
+  // Iterator(value, key, collection) for each element of collection.
   // Accepts both arrays and objects.
   //
   // Note: _.each does not have a return value, but rather simply runs the
   // iterator function over each item in the input collection.
   _.each = function(collection, iterator) {
+      if(typeof collection === 'object' && !Array.isArray(collection) && collection !== null){
+            for(const key in collection){
+            let values = collection[key]
+            iterator(values, key, collection )
+            }
+      } else {
+         for(let i = 0; i < collection.length; i++){
+         iterator(collection[i], i, collection)
+        }
+     }
   };
 
   // Returns the index at which value can be found in the array, or -1 if value
   // is not present in the array.
-  _.indexOf = function(array, target) {
-    // TIP: Here's an example of a function that needs to iterate, which we've
+
+  // TIP: Here's an example of a function that needs to iterate, which we've
     // implemented for you. Instead of using a standard `for` loop, though,
     // it uses the iteration helper `each`, which you will need to write.
+  _.indexOf = function(array, target) {
+
     var result = -1;
 
     _.each(array, function(item, index) {
@@ -66,21 +83,57 @@
 
   // Return all elements of an array that pass a truth test.
   _.filter = function(collection, test) {
+    const result = []
+    for(let i = 0; i < collection.length; i++) {
+      if(test(collection[i])){
+        result.push(collection[i])
+      }
+    }
+    return result
   };
+
 
   // Return all elements of an array that don't pass a truth test.
   _.reject = function(collection, test) {
+
+    const goodNums = _.filter(collection, test);
+    const rejects = []
+
+    for(let i = 0; i < collection.length; i++){
+      if(goodNums.includes(collection[i])) {
+
+        continue;
+      } else{
+        rejects.push(collection[i]);
+      }
+    }
+    return rejects
+
+  };
     // TIP: see if you can re-use _.filter() here, without simply
     // copying code in and modifying it
-  };
 
   // Produce a duplicate-free version of the array.
   _.uniq = function(array) {
+    let result = []
+    for(let i = 0; i < array.length; i++){
+      if(result.includes(array[i])){
+
+      } else {
+        result.push(array[i])
+      }
+    }return result
   };
 
 
   // Return the results of applying an iterator to each element.
   _.map = function(collection, iterator) {
+    let result = []
+    for(let i = 0; i < collection.length; i++){
+      //iterator(collection[i])
+      result.push(iterator(collection[i]))
+    }
+    return result
     // map() is a useful primitive iteration function that works a lot
     // like each(), but in addition to running the operation on all
     // the members, it also maintains an array of results.
@@ -95,15 +148,15 @@
   // Takes an array of objects and returns and array of the values of
   // a certain property in it. E.g. take an array of people and return
   // an array of just their ages
+  // TIP: map is really handy when you want to transform an array of
+  // values into a new array of values. _.pluck() is solved for you
+  // as an example of this.
   _.pluck = function(collection, key) {
-    // TIP: map is really handy when you want to transform an array of
-    // values into a new array of values. _.pluck() is solved for you
-    // as an example of this.
+
     return _.map(collection, function(item) {
       return item[key];
     });
   };
-
   // Reduces an array or object to a single value by repetitively calling
   // iterator(accumulator, item) for each item. accumulator should be
   // the return value of the previous iterator call.
@@ -125,6 +178,32 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
+    let flag = true;
+
+    if(typeof accumulator === 'undefined'){
+      accumulator = collection[0];
+      flag = false;
+    }
+
+    if(collection instanceof Array === false){
+      for(let element in collection){
+        if(flag){
+          accumulator = iterator(accumulator, collection[element]);
+        } else {
+          flag = true;
+        }
+      }
+      return accumulator;
+    } else {
+      for(let i = 0; i < collection.length; i++){
+      if(flag){
+        accumulator = iterator(accumulator, collection[i]);
+      } else {
+        flag = true;
+        }
+      }
+    }
+    return accumulator;
   };
 
   // Determine if the array or object contains a given value (using `===`).
@@ -141,16 +220,25 @@
 
 
   // Determine whether all of the elements match a truth test.
-  _.every = function(collection, iterator) {
-    // TIP: Try re-using reduce() here.
+  _.every = function(collection, iterator = _.identity) {
+    return _.reduce(collection, function(trueFalse, item){
+      if(!!iterator(item) === false){
+        trueFalse = false;
+      }
+      return trueFalse;
+    }, true)
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
-  _.some = function(collection, iterator) {
-    // TIP: There's a very clever way to re-use every() here.
+  _.some = function(collection, iterator = _.identity) {
+    return _.reduce(collection, function(trueFalse, item){
+      if(!!iterator(item) === true){
+        trueFalse = true;
+      }
+      return trueFalse;
+    }, false)
   };
-
 
   /**
    * OBJECTS
